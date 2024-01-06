@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Url Shortner</title>
+</head>
+<body>
+    <h1>Url Shortner</h1>
+    <label for="inputField">Enter your text:</label>
+    <input type="text" id="inputField" placeholder="Enter your url here...">
+    <button onclick="sendData()">Submit</button>
+
+    <p id="result"></p>
+
+    <script>
+        function sendData() {
+            const userInput = document.getElementById('inputField').value;
+
+            // Send data to the Golang server using fetch
+            fetch('/process', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ input: userInput }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('result').innerText = `Server response: ${data.message}`;
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    </script>
+</body>
+</html>
