@@ -3,33 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Url Shortner</title>
+    <title>URL Shortener</title>
 </head>
 <body>
-    <h1>Url Shortner</h1>
-    <label for="inputField">Enter your text:</label>
-    <input type="text" id="inputField" placeholder="Enter your url here...">
-    <button onclick="sendData()">Submit</button>
+    <h1>URL Shortener</h1>
+    <form id="urlForm">
+        <label for="originalURL">Enter URL:</label>
+        <input type="text" id="originalURL" name="originalURL" required>
+        <button type="submit">Shorten URL</button>
+    </form>
 
-    <p id="result"></p>
+    <div id="shortURL"></div>
 
     <script>
-        function sendData() {
-            const userInput = document.getElementById('inputField').value;
+        document.getElementById('urlForm').addEventListener('submit', function (event) {
+            event.preventDefault();
+            shortenURL();
+        });
 
-            // Send data to the Golang server using fetch
-            fetch('/process', {
+        function shortenURL() {
+            var originalURL = document.getElementById('originalURL').value;
+
+            fetch('/shorten', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ input: userInput }),
+                body: JSON.stringify({ "originalURL": originalURL }),
             })
             .then(response => response.json())
             .then(data => {
-                document.getElementById('result').innerText = `Server response: ${data.message}`;
+                document.getElementById('shortURL').innerText = 'Short URL: ' + data.shortURL;
             })
-            .catch(error => console.error('Error:', error));
+            .catch(error => {
+                console.error('Error:', error);
+            });
         }
     </script>
 </body>
