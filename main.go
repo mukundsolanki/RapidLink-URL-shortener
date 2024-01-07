@@ -18,6 +18,7 @@ import (
 type URL struct {
 	ID          string `json:"id,omitempty" bson:"_id,omitempty"`
 	OriginalURL string `json:"originalURL,omitempty" bson:"originalURL,omitempty"`
+	Visits      int    `json:"visits,omitempty" bson:"visits,omitempty"`
 }
 
 var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
@@ -58,7 +59,7 @@ func main() {
 		token := generateRandomToken(6)
 		shortURL := fmt.Sprintf("http://localhost:8080/%s", token)
 
-		urlDoc := URL{ID: token, OriginalURL: inputURL.OriginalURL}
+		urlDoc := URL{ID: token, OriginalURL: inputURL.OriginalURL, Visits: 0} // Initialize Visits to 0
 		_, err = client.Database("urlshortener").Collection("urls").InsertOne(context.Background(), urlDoc)
 		if err != nil {
 			http.Error(w, "Error storing URL in database", http.StatusInternalServerError)
@@ -71,7 +72,6 @@ func main() {
 		json.NewEncoder(w).Encode(response)
 	}).Methods("POST")
 
-	// Endpoint to redirect to the original URL
 	router.HandleFunc("/{token}", func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		token := vars["token"]
@@ -82,6 +82,16 @@ func main() {
 		if err != nil {
 			http.Error(w, "URL not found", http.StatusNotFound)
 			return
+		}
+
+		urlDoc.Visits++
+		_, err = client.Database("urlshortener").Collection("urls").UpdateOne(
+			context.Background(),
+			bson.M{"_id": token},
+			bson.M{"$set": bson.M{"visits": urlDoc.Visits}},
+		)
+		if err != nil {
+			log.Printf("Error updating visits count: %v", err)
 		}
 
 		http.Redirect(w, r, urlDoc.OriginalURL, http.StatusSeeOther)
