@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"log"
 	"math/rand"
 	"net/http"
@@ -22,6 +23,8 @@ type URL struct {
 }
 
 var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+
+var templates = template.Must(template.ParseFiles("analytics.html"))
 
 func generateRandomToken(length int) string {
 	rand.Seed(time.Now().UnixNano())
@@ -95,6 +98,24 @@ func main() {
 		}
 
 		http.Redirect(w, r, urlDoc.OriginalURL, http.StatusSeeOther)
+	}).Methods("GET")
+
+	router.HandleFunc("/analytics/{token}", func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		token := vars["token"]
+
+		var urlDoc URL
+		err := client.Database("urlshortener").Collection("urls").FindOne(context.Background(), bson.M{"_id": token}).Decode(&urlDoc)
+		if err != nil {
+			http.Error(w, "URL not found", http.StatusNotFound)
+			return
+		}
+
+		err = templates.ExecuteTemplate(w, "analytics.html", urlDoc)
+		if err != nil {
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
 	}).Methods("GET")
 
 	port := 8080
