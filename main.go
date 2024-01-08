@@ -12,14 +12,16 @@ import (
 
 	"github.com/gorilla/mux"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type URL struct {
-	ID          string `json:"id,omitempty" bson:"_id,omitempty"`
-	OriginalURL string `json:"originalURL,omitempty" bson:"originalURL,omitempty"`
-	Visits      int    `json:"visits,omitempty" bson:"visits,omitempty"`
+	ID          string             `json:"id,omitempty" bson:"_id,omitempty"`
+	OriginalURL string             `json:"originalURL,omitempty" bson:"originalURL,omitempty"`
+	Visits      int                `json:"visits,omitempty" bson:"visits,omitempty"`
+	CreateTime  primitive.DateTime `json:"createTime,omitempty" bson:"createTime,omitempty"`
 }
 
 var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
@@ -62,7 +64,7 @@ func main() {
 		token := generateRandomToken(6)
 		shortURL := fmt.Sprintf("http://localhost:8080/%s", token)
 
-		urlDoc := URL{ID: token, OriginalURL: inputURL.OriginalURL, Visits: 0} // Initialize Visits to 0
+		urlDoc := URL{ID: token, OriginalURL: inputURL.OriginalURL, Visits: 0, CreateTime: primitive.NewDateTimeFromTime(time.Now().UTC())} // Initialize Visits to 0
 		_, err = client.Database("urlshortener").Collection("urls").InsertOne(context.Background(), urlDoc)
 		if err != nil {
 			http.Error(w, "Error storing URL in database", http.StatusInternalServerError)
