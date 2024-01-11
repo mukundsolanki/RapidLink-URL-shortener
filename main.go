@@ -72,7 +72,7 @@ func main() {
 		}
 
 		// Return the short URL
-		response := map[string]string{"shortURL": shortURL}
+		response := map[string]string{"shortURL": shortURL, "tokenId": token}
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(response)
 	}).Methods("POST")
