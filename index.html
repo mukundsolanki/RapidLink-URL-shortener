@@ -1,44 +1,66 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>URL Shortener</title>
-</head>
-<body>
-    <h1>URL Shortener</h1>
-    <form id="urlForm">
-        <label for="originalURL">Enter URL:</label>
-        <input type="text" id="originalURL" name="originalURL" required>
-        <button type="submit">Shorten URL</button>
-    </form>
+    <link
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="bg-gray-100 font-sans">
+    <div class="container mx-auto p-4">
+      <h1 class="text-4xl font-bold mb-8">URL Shortener</h1>
+      <form id="urlForm" class="mb-8">
+        <label for="originalURL" class="text-lg">Enter URL:</label>
+        <input
+          type="text"
+          id="originalURL"
+          name="originalURL"
+          required
+          class="w-full p-2 border rounded-md"
+        />
+        <button type="submit" class="bg-blue-500 text-white p-2 rounded-md">
+          Shorten URL
+        </button>
+      </form>
 
-    <div id="shortURL"></div>
+      <div id="shortURL" class="mb-4"></div>
+      <div id="analytics" class="text-blue-500"></div>
+    </div>
 
     <script>
-        document.getElementById('urlForm').addEventListener('submit', function (event) {
-            event.preventDefault();
-            shortenURL();
+      document
+        .getElementById("urlForm")
+        .addEventListener("submit", function (event) {
+          event.preventDefault();
+          shortenURL();
         });
 
-        function shortenURL() {
-            var originalURL = document.getElementById('originalURL').value;
+      function shortenURL() {
+        var originalURL = document.getElementById("originalURL").value;
 
-            fetch('/shorten', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ "originalURL": originalURL }),
-            })
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById('shortURL').innerText = 'Short URL: ' + data.shortURL;
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
-        }
+        fetch("/shorten", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ originalURL: originalURL }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            document.getElementById("shortURL").innerHTML =
+              "<strong>Short URL:</strong> " + data.shortURL;
+            console.log(data);
+            document.getElementById("analytics").innerHTML =
+              "<strong>Visit to see analytics:</strong> " +
+              `<a href="http://localhost:8080/analytics/${data.tokenId}" class="text-blue-500">Click Here</a>`;
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+          });
+      }
     </script>
-</body>
+  </body>
 </html>
